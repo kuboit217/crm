@@ -1,7 +1,9 @@
 from django.shortcuts import render , redirect
 from django.http import HttpResponse
+from django.forms import inlineformset_factory
 from .models import *
 from .forms import OrderForm
+from .filters import OrderFilter
 
 # Create your views here.
 def home(request):
@@ -26,19 +28,27 @@ def customers(request, pk):
     orders = customer.order_set.all()
     total_order = orders.count()
 
-    context = {'customer': customer , 'orders': orders , 'total_order': total_order}
+    #tạo tìm kiếm trong customer
+    customer_filter = OrderFilter(request.GET, queryset= orders)
+    orders = customer_filter.qs
+
+    context = {'customer': customer , 'orders': orders , 'total_order': total_order, 'customer_filter': customer_filter}
 
     return render(request, 'accounts/customers.html', context)
 
 #tạo form thêm mới order
-def create_order(request):
-    form = OrderForm()
-    context ={'form':form}
+def create_order(request, pk):
+    OrderFormSet = inlineformset_factory(Customer,Order , fields = ('product','status'), extra =5)
+    customer = Customer.objects.get(id=pk)
+    formset = OrderFormSet(queryset=Order.objects.none(),instance=customer)
+    #form = OrderForm(initial={'customer': customer})  
     if request.method == 'POST':
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            form.save()
+        #form = OrderForm(request.POST)
+        formset = OrderFormSet(request.POST,instance=customer)
+        if formset.is_valid():
+            formset.save()
             return redirect('/')
+    context ={'formset':formset}
     return render(request, 'accounts/order_form.html', context)
 
 #tọ form update order

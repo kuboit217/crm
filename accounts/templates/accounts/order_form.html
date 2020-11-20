@@ -1,14 +1,17 @@
 {% extends 'accounts/main.html' %}
-{% load crispy_forms_tags %}
 {% block content%}
 <br>
 <div class="row">
-    <div class="col-3 mx-auto">
-        <form method="POST" action="" novalidate>
+    <div class="col-6 mx-auto">
+        <form method="POST" action="" >
             {% csrf_token %}
-                {{form|crispy}}
-                <input type="submit" value="submit" class="btn btn-primary" />
-            </form>
+            {{ formset.management_form }}
+            {% for form in formset%}
+                {{form}}
+                <hr>
+            {% endfor %}
+            <input type="submit" value="submit" class="btn btn-primary" />
+        </form>
     </div>
 </div>
 
