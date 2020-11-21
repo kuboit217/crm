@@ -2,14 +2,14 @@ from django.shortcuts import render , redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm 
 from django.contrib import messages 
 from django.contrib.auth import authenticate, login , logout 
 from django.contrib.auth.models import Group
 
 #view của bạn
 from .models import *
-from .forms import OrderForm , CreateUserForm
+from .forms import OrderForm , CreateUserForm, CustomerForm
 from .filters import OrderFilter
 #đưa decorators vào để kiểm tra đăng nhập
 from .decorators import unauthenticated_user, allowed_users , andmin_only
@@ -147,3 +147,17 @@ def userPage(request):
     context = {'orders': orders, 'total_orders': total_orders,
         'delivered':delivered , 'pending':pending}
     return render(request, 'accounts/users.html', context)
+
+#tạo trang profile
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
+def accountSettings(request):
+    customer = request.user.customer
+    form = CustomerForm(instance = customer)
+    if request.method == 'POST':
+        form = CustomerForm(request.POST, request.FILES, instance = customer)
+        if form.is_valid():
+            form.save()
+
+    context = {'form':form}
+    return render(request, 'accounts/account_setting.html', context)
