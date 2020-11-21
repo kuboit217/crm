@@ -2,8 +2,11 @@ from django.shortcuts import render , redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
 from .models import *
-from .forms import OrderForm
+from .forms import OrderForm , CreateUserForm
 from .filters import OrderFilter
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+from django.contrib.auth import authenticate, login , logout
 
 # Create your views here.
 def home(request):
@@ -71,3 +74,37 @@ def delete_order(request,pk):
         return redirect('/')
     context ={'item':order}
     return render(request, 'accounts/delete_order.html', context)
+
+#tạo login
+def loginPage(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.info(request,'Username or Password is correct')
+
+    context = {}
+    return render(request, 'accounts/login.html', context)
+
+#tạo form đăng ký
+def registerPage(request):
+    form = CreateUserForm()
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            user = form.cleaned_data.get('username')
+            messages.success(request,'Accout was create for '+ user)
+            return redirect('login')
+    context = {'form':form}
+    return render(request, 'accounts/register.html', context)
+
+#tạo phần logout
+def logoutUser(request):
+    logout(request)
+    return redirect('login')
