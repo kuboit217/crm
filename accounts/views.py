@@ -117,14 +117,11 @@ def loginPage(request):
 def registerPage(request):
     form = CreateUserForm()
     if request.method == 'POST':
-        form = CreateUserForm(request.POST)
+        form = CreateUserForm(request.POST, instance= None)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
-            group = Group.objects.get(name='customer')
-            user.groups.add(group) #tự thêm group vào user
-            #gắn user vào tên khách hàng
-            Customer.objects.create(user=user,name=user.username,)
+            
             messages.success(request,'Accout was create for '+ username)
             return redirect('login')
     context = {'form':form}
